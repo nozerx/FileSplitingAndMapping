@@ -34,10 +34,10 @@ func (fI *FileInfo) SplitAndSave(file *os.File) {
 				pieceFile.Write(lastPieceBuffer)
 				pieceFile.Close()
 				pieceInfo := ComposePieceInfo(pieceFileName, lastPieceSize)
-				// pieceInfo.AddSources()
+				pieceInfo.AddSources()
 				fI.AppendPiecesMapList(pieceInfo)
 				fmt.Println("Handled file ", pieceFileName)
-				fmt.Println(pieceInfo)
+				// fmt.Println(pieceInfo)
 			}
 		} else {
 			file.Read(buffer)
@@ -49,10 +49,10 @@ func (fI *FileInfo) SplitAndSave(file *os.File) {
 				pieceFile.Write(buffer)
 				pieceFile.Close()
 				pieceInfo := ComposePieceInfo(pieceFileName, BufferSize)
-				// pieceInfo.AddSources()
+				pieceInfo.AddSources()
 				fI.AppendPiecesMapList(pieceInfo)
 				fmt.Println("Handled file ", pieceFileName)
-				fmt.Println(pieceInfo)
+				// fmt.Println(pieceInfo)
 			}
 		}
 

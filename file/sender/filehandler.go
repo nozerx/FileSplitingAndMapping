@@ -3,6 +3,7 @@ package sender
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"math/rand"
 	"os"
 	"strings"
@@ -94,12 +95,9 @@ func ComposePieceInfo(pieceName string, pieceSize int) *PieceInfo {
 
 func (fI *FileInfo) preparePieceDistributionList() {
 	peerdistrlist = nil
-	count := (fI.FilePieces / len(copyofPeerlist)) * 2
+	// count := int(math.Ceil(float64(fI.FilePieces/len(copyofPeerlist)))) * 2
+	count := int(math.Ceil((float64(fI.FilePieces*3))/float64(len(copyofPeerlist)))) + 2
 	fmt.Println("Count = ", count)
-	if fI.FilePieces < len(copyofPeerlist) {
-		count = len(copyofPeerlist) / fI.FilePieces * 2
-		fmt.Println("Count = ", count)
-	}
 	for _, peer := range copyofPeerlist {
 		peerdistrlist = append(peerdistrlist, PickDistributionList{
 			Peer:  peer,
@@ -110,14 +108,18 @@ func (fI *FileInfo) preparePieceDistributionList() {
 
 func (fI *FileInfo) AppendPiecesMapList(piece *PieceInfo) {
 	fI.Pieces = append(fI.Pieces, *piece)
-	fmt.Println(fI.Pieces)
+	// fmt.Println(fI.Pieces)
 }
 
 func (pI *PieceInfo) AddSources() {
 	previouschoices = nil
 	for i := 0; i < 3; i++ {
+		// fmt.Println("Calling choice from add sources")
 		choice := choosePeer()
+		// fmt.Println(choice)
+		// fmt.Println(peerdistrlist)
 		previouschoices = append(previouschoices, choice)
+		// fmt.Println(previouschoices)
 		// fmt.Println(choice, previouschoices)
 		pI.Sources = append(pI.Sources, choice)
 	}
@@ -126,23 +128,25 @@ func (pI *PieceInfo) AddSources() {
 }
 
 func choosePeer() int {
-	choice := rand.Intn(len(peerdistrlist) - 1)
-	// fmt.Println("Choice is ", choice)
+	choice := rand.Intn(len(peerdistrlist))
+	// fmt.Println("Choice is ", choice+1)
 	for i, peer := range peerdistrlist {
-		if peer.Count == 0 {
-			return choosePeer()
-		}
 
 		if i == choice {
+			if peer.Count == 0 {
+				// time.Sleep(1 * time.Second)
+				return choosePeer()
+			}
 			if previouschoices != nil {
 				for _, prvpeer := range previouschoices {
 					if peer.Peer == prvpeer {
-						// fmt.Println(peer.Peer, prvpeer)
+						// fmt.Println(peer.Peer, prvpeer, "previously chosen")
 						return choosePeer()
 					}
 				}
 			}
 			peerdistrlist[i].Count = peerdistrlist[i].Count - 1
+			// fmt.Println("Reduced the count of ", peer.Peer)
 			return peer.Peer
 		}
 	}
